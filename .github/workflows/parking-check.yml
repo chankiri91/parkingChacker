@@ -17,6 +17,17 @@ jobs:
       - name: リポジトリをチェックアウト
         uses: actions/checkout@v4
       
+      - name: ディレクトリ構造を確認
+        run: |
+          echo "現在のディレクトリ:"
+          pwd
+          echo "ディレクトリ一覧:"
+          ls -la
+          echo "kotlinディレクトリの確認:"
+          ls -la kotlin/ 2>/dev/null || echo "kotlinディレクトリが見つかりません"
+          echo "checkParkingディレクトリの確認:"
+          ls -la checkParking/ 2>/dev/null || echo "checkParkingディレクトリが見つかりません"
+      
       - name: Javaをセットアップ
         uses: actions/setup-java@v4
         with:
@@ -24,13 +35,13 @@ jobs:
           distribution: 'temurin'
       
       - name: Gradleでビルド
-        working-directory: ./checkParking/kotlin
+        working-directory: ${{ github.workspace }}/kotlin
         run: |
           chmod +x gradlew || true
           ./gradlew build --no-daemon
       
       - name: 設定ファイルを準備
-        working-directory: ./checkParking/kotlin
+        working-directory: ${{ github.workspace }}/kotlin
         run: |
           # GitHub Secretsから設定を読み込んでconfig.jsonを作成
           cat > config.json << EOF
@@ -48,14 +59,14 @@ jobs:
           EOF
       
       - name: 前回の状態をクリア（テスト用：毎回メール送信）
-        working-directory: ./checkParking/kotlin
+        working-directory: ${{ github.workspace }}/kotlin
         run: |
           # テスト用：state.jsonを削除して毎回メールを送信
           rm -f state.json || true
           echo "テストモード：前回の状態をクリアしました（毎回メール送信）"
       
       - name: パーキングをチェック
-        working-directory: ./checkParking/kotlin
+        working-directory: ${{ github.workspace }}/kotlin
         run: |
           ./gradlew run --no-daemon
         env:
@@ -65,7 +76,7 @@ jobs:
           TEST_MODE: "true"  # テストモード：満車でもメール送信
       
       - name: 状態を保存
-        working-directory: ./checkParking/kotlin
+        working-directory: ${{ github.workspace }}/kotlin
         if: always()
         run: |
           # 状態ファイルをGitHub Actionsのアーティファクトとして保存

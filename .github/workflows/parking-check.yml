@@ -2,10 +2,9 @@ name: パーキング空き状況チェック
 
 on:
   schedule:
-    # 1時間ごとに実行（UTC時刻）
-    # 日本時間の毎時0分に実行する場合は - cron: '0 * * * *' (UTC-9時間)
-    # 例: 日本時間の9時 = UTC 0時
-    - cron: '0 * * * *'  # 毎時0分（UTC）
+    # 3分ごとに実行（テスト用）
+    # 本番環境では1時間ごと（cron: '0 * * * *'）に戻してください
+    - cron: '*/3 * * * *'  # 3分ごと（UTC）
   
   # 手動実行も可能
   workflow_dispatch:
@@ -48,14 +47,12 @@ jobs:
           }
           EOF
       
-      - name: 前回の状態を復元（存在する場合）
+      - name: 前回の状態をクリア（テスト用：毎回メール送信）
         working-directory: ./checkParking/kotlin
         run: |
-          # GitHub Actionsのアーティファクト機能を使う場合
-          # またはGitHub Secretsに状態を保存する方法もある
-          if [ -f state.json ]; then
-            echo "前回の状態を読み込みました"
-          fi
+          # テスト用：state.jsonを削除して毎回メールを送信
+          rm -f state.json || true
+          echo "テストモード：前回の状態をクリアしました（毎回メール送信）"
       
       - name: パーキングをチェック
         working-directory: ./checkParking/kotlin
@@ -65,6 +62,7 @@ jobs:
           FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
           FROM_PASSWORD: ${{ secrets.FROM_PASSWORD }}
           TO_EMAIL: ${{ secrets.TO_EMAIL }}
+          TEST_MODE: "true"  # テストモード：満車でもメール送信
       
       - name: 状態を保存
         working-directory: ./checkParking/kotlin

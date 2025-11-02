@@ -44,7 +44,7 @@ jobs:
               "fromPassword": "${{ secrets.FROM_PASSWORD }}",
               "toEmail": "${{ secrets.TO_EMAIL }}"
             },
-            "checkIntervalMinutes": 60
+            "checkIntervalMinutes": 10
           }
           EOF
       

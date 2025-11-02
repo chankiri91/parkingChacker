@@ -1,0 +1,6 @@
+# Windows用バッチファイルはCRLFを保持
+*.bat text eol=crlf
+
+# その他のテキストファイルはLF
+* text=auto eol=lf
+

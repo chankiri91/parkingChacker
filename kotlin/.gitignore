@@ -11,6 +11,11 @@ last_page.html
 # Markdownファイル
 *.md
 
+# Gradleラッパー（自動生成されるため）
+gradlew
+gradlew.bat
+gradle/wrapper/gradle-wrapper.jar
+
 # ビルド成果物
 build/
 .gradle/

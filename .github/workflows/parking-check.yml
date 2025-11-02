@@ -2,9 +2,8 @@ name: パーキング空き状況チェック
 
 on:
   schedule:
-    # 3分ごとに実行（テスト用）
-    # 本番環境では1時間ごと（cron: '0 * * * *'）に戻してください
-    - cron: '*/3 * * * *'  # 3分ごと（UTC）
+    # 10分ごとに実行（UTC時刻）
+    - cron: '*/10 * * * *'  # 10分ごと（UTC）
   
   # 手動実行も可能
   workflow_dispatch:
@@ -16,17 +15,6 @@ jobs:
     steps:
       - name: リポジトリをチェックアウト
         uses: actions/checkout@v4
-      
-      - name: ディレクトリ構造を確認
-        run: |
-          echo "現在のディレクトリ:"
-          pwd
-          echo "ディレクトリ一覧:"
-          ls -la
-          echo "kotlinディレクトリの確認:"
-          ls -la kotlin/ 2>/dev/null || echo "kotlinディレクトリが見つかりません"
-          echo "checkParkingディレクトリの確認:"
-          ls -la checkParking/ 2>/dev/null || echo "checkParkingディレクトリが見つかりません"
       
       - name: Javaをセットアップ
         uses: actions/setup-java@v4
@@ -58,13 +46,6 @@ jobs:
           }
           EOF
       
-      - name: 前回の状態をクリア（テスト用：毎回メール送信）
-        working-directory: ${{ github.workspace }}/kotlin
-        run: |
-          # テスト用：state.jsonを削除して毎回メールを送信
-          rm -f state.json || true
-          echo "テストモード：前回の状態をクリアしました（毎回メール送信）"
-      
       - name: パーキングをチェック
         working-directory: ${{ github.workspace }}/kotlin
         run: |
@@ -73,7 +54,6 @@ jobs:
           FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
           FROM_PASSWORD: ${{ secrets.FROM_PASSWORD }}
           TO_EMAIL: ${{ secrets.TO_EMAIL }}
-          TEST_MODE: "true"  # テストモード：満車でもメール送信
       
       - name: 状態を保存
         working-directory: ${{ github.workspace }}/kotlin

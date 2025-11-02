@@ -225,14 +225,11 @@ class ParkingChecker(private val configFile: String = "config.json") {
 
         saveState(currentState)
 
-        // テストモードかどうかを確認（環境変数から）
-        val testMode = System.getenv("TEST_MODE") == "true"
-
         if (currentState.hasVacancy) {
             println("✅ 空きが見つかりました！")
 
-            // テストモードの場合は常に送信、そうでない場合は前回も空きがあった場合は通知しない
-            if (!testMode && previousState?.hasVacancy == true) {
+            // 前回も空きがあった場合は通知しない
+            if (previousState?.hasVacancy == true) {
                 println("ℹ️  前回も空きがあったため、通知をスキップします")
             } else {
                 // メール通知を送信
@@ -253,25 +250,6 @@ ${currentState.details}
             }
         } else {
             println("ℹ️  現在満車です")
-            
-            // テストモードの場合は満車でもメール送信
-            if (testMode) {
-                println("🧪 テストモード：満車でもメールを送信します")
-                val subject = "【テスト】パーキング空き状況チェック"
-                val body = """
-パーキング空き状況チェック結果（テスト）
-
-URL: $url
-チェック時刻: ${currentState.timestamp}
-状態: 満車
-
-詳細:
-${currentState.details}
-
-※これはテストメールです
-""".trimIndent()
-                sendEmail(subject, body)
-            }
         }
     }
 }

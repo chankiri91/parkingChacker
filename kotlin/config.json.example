@@ -1,0 +1,12 @@
+{
+  "url": "https://monthly.mkp.jp/parking/001150-0F/",
+  "email": {
+    "smtpServer": "smtp.gmail.com",
+    "smtpPort": 587,
+    "fromEmail": "your-email@gmail.com",
+    "fromPassword": "your-app-password",
+    "toEmail": "notification-email@example.com"
+  },
+  "checkIntervalMinutes": 60
+}
+

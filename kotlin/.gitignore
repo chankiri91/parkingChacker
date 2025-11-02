@@ -1,0 +1,27 @@
+# 設定ファイル（機密情報を含む）
+config.json
+state.json
+
+# ログファイル
+*.log
+
+# デバッグ用HTML
+last_page.html
+
+# Markdownファイル
+*.md
+
+# ビルド成果物
+build/
+.gradle/
+*.class
+
+# IDE設定
+.idea/
+*.iml
+.vscode/
+
+# OS設定
+.DS_Store
+Thumbs.db
+

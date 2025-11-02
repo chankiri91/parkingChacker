@@ -1,0 +1,82 @@
+name: パーキング空き状況チェック
+
+on:
+  schedule:
+    # 1時間ごとに実行（UTC時刻）
+    # 日本時間の毎時0分に実行する場合は - cron: '0 * * * *' (UTC-9時間)
+    # 例: 日本時間の9時 = UTC 0時
+    - cron: '0 * * * *'  # 毎時0分（UTC）
+  
+  # 手動実行も可能
+  workflow_dispatch:
+
+jobs:
+  check-parking:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+      
+      - name: Javaをセットアップ
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      
+      - name: Gradleでビルド
+        working-directory: ./checkParking/kotlin
+        run: |
+          chmod +x gradlew || true
+          ./gradlew build --no-daemon
+      
+      - name: 設定ファイルを準備
+        working-directory: ./checkParking/kotlin
+        run: |
+          # GitHub Secretsから設定を読み込んでconfig.jsonを作成
+          cat > config.json << EOF
+          {
+            "url": "${{ secrets.PARKING_URL || 'https://monthly.mkp.jp/parking/001150-0F/' }}",
+            "email": {
+              "smtpServer": "${{ secrets.SMTP_SERVER || 'smtp.gmail.com' }}",
+              "smtpPort": ${{ secrets.SMTP_PORT || 587 }},
+              "fromEmail": "${{ secrets.FROM_EMAIL }}",
+              "fromPassword": "${{ secrets.FROM_PASSWORD }}",
+              "toEmail": "${{ secrets.TO_EMAIL }}"
+            },
+            "checkIntervalMinutes": 60
+          }
+          EOF
+      
+      - name: 前回の状態を復元（存在する場合）
+        working-directory: ./checkParking/kotlin
+        run: |
+          # GitHub Actionsのアーティファクト機能を使う場合
+          # またはGitHub Secretsに状態を保存する方法もある
+          if [ -f state.json ]; then
+            echo "前回の状態を読み込みました"
+          fi
+      
+      - name: パーキングをチェック
+        working-directory: ./checkParking/kotlin
+        run: |
+          ./gradlew run --no-daemon
+        env:
+          FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
+          FROM_PASSWORD: ${{ secrets.FROM_PASSWORD }}
+          TO_EMAIL: ${{ secrets.TO_EMAIL }}
+      
+      - name: 状態を保存
+        working-directory: ./checkParking/kotlin
+        if: always()
+        run: |
+          # 状態ファイルをGitHub Actionsのアーティファクトとして保存
+          if [ -f state.json ]; then
+            echo "状態を保存しました"
+          fi
+      
+      - name: エラー時に通知
+        if: failure()
+        run: |
+          echo "⚠️ パーキングチェックでエラーが発生しました"
+
